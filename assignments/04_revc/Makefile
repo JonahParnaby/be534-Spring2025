@@ -5,4 +5,3 @@ test:
 	flake8 revc.py
 	pylint revc.py
 
-	
