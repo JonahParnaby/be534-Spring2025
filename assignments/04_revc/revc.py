@@ -56,7 +56,6 @@ def main():
     if args.out:
         open(args.out, 'wt').write(revc + '\n')
  
-
 # --------------------------------------------------
 if __name__ == '__main__':
     main()
