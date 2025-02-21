@@ -63,6 +63,8 @@ def test_input1() -> None:
     assert rv == 0
     assert out == open(expected).read().rstrip()
 
+TEST1 = ('./inputs/input1.txt', './inputs/output1.txt')
+
 
 # --------------------------------------------------
 def test_input2() -> None:
@@ -72,3 +74,4 @@ def test_input2() -> None:
     rv, out = getstatusoutput(f'{PRG} {file}')
     assert rv == 0
     assert out == open(expected).read().rstrip()
+TEST2 = ('./inputs/input2.txt', './inputs/output2.txt')
