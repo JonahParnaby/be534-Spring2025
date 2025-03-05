@@ -49,8 +49,6 @@ def main():
     """Convert DNA to RNA"""
 
     args = get_args()
-
-    # Ensure the output directory exists
     if not os.path.isdir(args.out_dir):
         os.makedirs(args.out_dir)
 
@@ -60,21 +58,16 @@ def main():
     for filename in args.file:
         with open(filename, 'rt') as fh:
             dna = fh.read().strip()
-
-        # Replace 'T' with RNA equivalent (default is 'U')
         rna = dna.replace('T', args.RNA).replace('t', args.RNA.lower())
 
-        # Split sequences by newlines (if multiple sequences are present)
         sequences = rna.splitlines()
         total_sequences += len(sequences)
         file_count += 1
 
-        # Save output
         out_file = os.path.join(args.out_dir, os.path.basename(filename))
         with open(out_file, 'w') as f:
             f.write('\n'.join(sequences))
 
-    # Output message with correct pluralization
     sequence_word = "sequence" if total_sequences == 1 else "sequences"
     file_word = "file" if file_count == 1 else "files"
 
