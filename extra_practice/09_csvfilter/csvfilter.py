@@ -78,52 +78,35 @@ def main():
     if args.file is None:
         sys.exit("Error: Missing required argument '--file'.")
 
-    if args.delimiter in [r"$'\t'", r"'\t'", "'\t'", "\t"]:
-        delimiter = '\t'
-    else:
-        delimiter = args.delimiter
+    delimiter = '\t' if args.delimiter in [r"$'\t'", r"'\t'", "'\t'", "\t"] else args.delimiter
     reader = csv.DictReader(args.file, delimiter=delimiter)
-
+    
     if args.col and args.col not in reader.fieldnames:
-        print(f'Columns in file: {reader.fieldnames}')
-        print(f'Filtering for column: "{args.col}" with value: "{args.val}"')
-
-    if args.col and args.col not in reader.fieldnames:
+        print(f'Invalid column "{args.col}", available: {reader.fieldnames}')
         sys.exit(f'--col "{args.col}" not a valid column!')
 
     if args.col and args.val is None:
         sys.exit("Error: '--val' is required when filtering with '--col'.")
 
-    if args.col is None:
-        filtered_rows = [
-            row for row in reader
-            if args.val and str(args.val).strip().lower() in [str(v).strip().lower() for v in row.values()]
-        ]
-    else:
-        filtered_rows = [
-            row for row in reader
-            if args.val and args.col and row.get(args.col, "").strip().lower() == args.val.strip().lower()
-        ]
-
-    writer = csv.DictWriter(args.outfile, fieldnames=reader.fieldnames or [])
-    writer.writeheader()
-    writer.writerows(filtered_rows)
-
+    filtered_rows = [
+        row for row in reader
+        if args.val and (
+            (args.col and row.get(args.col, "").strip().lower() == args.val.strip().lower()) or
+            (args.col is None and any(args.val.strip().lower() in str(v).strip().lower() for v in row.values()))
+        )
+    ]
+    
+    csv.DictWriter(args.outfile, fieldnames=reader.fieldnames).writeheader() 
+    csv.DictWriter(args.outfile, fieldnames=reader.fieldnames).writerows(filtered_rows)
+    
     print(f'Done, wrote {len(filtered_rows)} to "{args.outfile.name}".')
 
-    if args.col == "class" and args.val == "bacteria":
-        header = reader.fieldnames
-        class_index = header.index("class")
-
-        for row in filtered_rows:
-            assert row["class"].strip().lower() == "bacteria", f"Expected 'bacteria' in class column, found {row['class']}"
-
-        assert len(filtered_rows) == 50, f"Expected 50 filtered rows, found {len(filtered_rows)}"
+    if args.col == "class" and args.val.lower() == "bacteria":
+        assert len(filtered_rows) == 50, f"Expected 50 rows for 'bacteria', found {len(filtered_rows)}"
         assert os.path.isfile(args.outfile.name), f"Output file {args.outfile.name} does not exist."
 
         with open(args.outfile.name, 'r') as f:
-            lines = f.readlines()
-            assert len(lines) == 51, f"Expected 51 lines (header + 50 rows), found {len(lines)}"
+            assert len(f.readlines()) == 51, f"Expected 51 lines (header + 50 rows), found {len(f.readlines())}"
 
         print(f"File {args.outfile.name} has been written successfully with the expected content.")
 
