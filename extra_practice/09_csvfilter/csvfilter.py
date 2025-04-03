@@ -24,18 +24,19 @@ def get_args():
         description='Add Your Purpose',
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
-    parser.add_argument('positional',
-                        metavar='str',
-                        help='A positional argument',
-                        nargs='?')
+# Not needed
+#    parser.add_argument('positional',
+#                        metavar='str',
+#                        help='A positional argument',
+#                        nargs='?')
 
     parser.add_argument('-f',
                         '--file',
                         help='A required argument that is a readable file',
                         metavar='FILE',
                         type=argparse.FileType('rt'),
-                        required=True,
-                        default=None)
+                        required=True) 
+                        #default=None)
 
     parser.add_argument('-v',
                         '--val',
@@ -50,7 +51,8 @@ def get_args():
                         metavar='COLUMN',
                         type=str,
                        # required=True,
-                        default=None)
+                        #default=None)
+                        default='')
 
     parser.add_argument('-o',
                         '--outfile',
@@ -75,11 +77,13 @@ def main():
 
     args = get_args()
 
-    if args.file is None:
-        sys.exit("Error: Missing required argument '--file'.")
+# Not needed let argparse handle this for you..
+#    if args.file is None:
+#        sys.exit("Error: Missing required argument '--file'.")
+#
+    #delimiter = '\t' if args.delimiter in [r"$'\t'", r"'\t'", "'\t'", "\t"] else args.delimiter
 
-    delimiter = '\t' if args.delimiter in [r"$'\t'", r"'\t'", "'\t'", "\t"] else args.delimiter
-    reader = csv.DictReader(args.file, delimiter=delimiter)
+    reader = csv.DictReader(args.file, delimiter=args.delimiter)
     
     if args.col and args.col not in reader.fieldnames:
         print(f'Invalid column "{args.col}", available: {reader.fieldnames}')
@@ -88,27 +92,35 @@ def main():
     if args.col and args.val is None:
         sys.exit("Error: '--val' is required when filtering with '--col'.")
 
-    filtered_rows = [
-        row for row in reader
-        if args.val and (
-            (args.col and row.get(args.col, "").strip().lower() == args.val.strip().lower()) or
-            (args.col is None and any(args.val.strip().lower() in str(v).strip().lower() for v in row.values()))
-        )
-    ]
-    
+#    filtered_rows = [
+#        row for row in reader
+#        if args.val and (
+#            (args.col and row.get(args.col, " ").strip().lower() == args.val.strip().lower()) or
+#            (args.col is None and any(args.val.strip().lower() in str(v).strip().lower() for v in row.values()))
+#        )
+#    ]
+    # using re.search is a much cleaner way to do this...
+    # and it can handle the IGNORECASE for you too.
+    filtered_rows = []
+    for rec in reader:
+        text = rec.get(args.col) if args.col else ' '.join(rec.values())
+        if re.search(args.val, text, re.IGNORECASE):
+            filtered_rows.append(rec)
+
     csv.DictWriter(args.outfile, fieldnames=reader.fieldnames).writeheader() 
     csv.DictWriter(args.outfile, fieldnames=reader.fieldnames).writerows(filtered_rows)
     
     print(f'Done, wrote {len(filtered_rows)} to "{args.outfile.name}".')
 
-    if args.col == "class" and args.val.lower() == "bacteria":
-        assert len(filtered_rows) == 50, f"Expected 50 rows for 'bacteria', found {len(filtered_rows)}"
-        assert os.path.isfile(args.outfile.name), f"Output file {args.outfile.name} does not exist."
-
-        with open(args.outfile.name, 'r') as f:
-            assert len(f.readlines()) == 51, f"Expected 51 lines (header + 50 rows), found {len(f.readlines())}"
-
-        print(f"File {args.outfile.name} has been written successfully with the expected content.")
+# Not needed
+#    if args.col == "class" and args.val.lower() == "bacteria":
+#        assert len(filtered_rows) == 50, f"Expected 50 rows for 'bacteria', found {len(filtered_rows)}"
+#        assert os.path.isfile(args.outfile.name), f"Output file {args.outfile.name} does not exist."
+#
+#        with open(args.outfile.name, 'r') as f:
+#            assert len(f.readlines()) == 51, f"Expected 51 lines (header + 50 rows), found {len(f.readlines())}"
+#
+#        print(f"File {args.outfile.name} has been written successfully with the expected content.")
 
 # --------------------------------------------------
 if __name__ == '__main__':
