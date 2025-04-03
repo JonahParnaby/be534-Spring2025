@@ -9,8 +9,13 @@ import argparse
 import io
 import csv 
 import random
-from tabulate import tabulate
+#from tabulate import tabulate
 from pprint import pprint
+from subprocess import getstatusoutput
+
+prg = './wod.py'
+input1 = 'inputs/exercises.csv'
+input2 = 'inputs/silly-exercises.csv'
 
 
 # --------------------------------------------------
@@ -89,8 +94,24 @@ def test_read_csv():
 
     text = io.StringIO('exercise,reps\nBurpees,20-50\nSitups,40-100')
     assert read_csv(text) == [('Burpees', 20, 50), ('Situps', 40, 100)]
-
+    expected = """
 
 # --------------------------------------------------
+def test_seed1():
+
+Exercise      Reps
+----------  ------
+Pushups         56
+Situps          88
+Crunches        27
+Burpees         35
+"""
+
+    seed_flag = '-s' if random.choice([0, 1]) else '--seed'
+    rv, out = getstatusoutput(f'{prg} {seed_flag} 1')
+    assert rv == 0
+    assert out.strip() == expected.strip()
+
+# 
 if __name__ == '__main__':
     main()
