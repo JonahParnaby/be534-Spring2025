@@ -47,6 +47,7 @@ def run(input_file: str, expected_file: str) -> None:
     expected = open(expected_file).read().rstrip()
     rv, out = getstatusoutput(f'{PRG} {input_file}')
     assert rv == 0
+    
     assert out == expected
 
 

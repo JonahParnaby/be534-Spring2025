@@ -6,3 +6,7 @@ channel = "stable-24_05"
 
 [deployment]
 run = ["sh", "-c", "~/workspace/assignments/grade_hw.sh"]
+
+[[ports]]
+localPort = 4370
+externalPort = 80
